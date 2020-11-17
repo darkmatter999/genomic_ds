@@ -142,7 +142,55 @@ def naive_with_mismatches(p, t, n):
 
     return occurrences
 
+'''
+Boyer-Moore
+***********
 
+Try both bad character rule and good suffix rule. Implement whichever rule yields the most skipped alignments, or comparisons.
 
+T:
+CCGGTGTTTGAC
+P:
+ GATTATT
 
+The bad character rule requires us to slide the *pattern* past a mismatched character in the *text* until there are no more mismatches
+or alternatively the pattern length exceeds the remaining characters in the text or reference.
 
+The good suffix rule requires us to identify a common suffix in pattern and text and slide the pattern past the next occurrence of the
+'good suffix' in the pattern until there are no more mismatches or alternatively the pattern length exceeds the remaining characters in 
+the text or reference.
+
+In above example, we can skip one alignment using the good suffix rule (G for A), but three alignments if we use the bad character
+rule (TTA).
+'''
+
+'''
+Lookup table (dictionary) for offline algorithms
+************************************************
+Problem: Offline algorithms are those that preprocess the text (reference) T before any further action. This algorithm creates a dictionary
+containing the offsets (start indices) of all k-mers in the text. It returns the respective occurrences as a value list for each key 
+(i.e. k-mer).
+'''
+
+def lookup_table(T,k):
+  index = {}
+  i = 0
+  while i < len(T):
+    kmer = T[i:i+k]
+    if not kmer in index: #if the kmer already has a hit, the occurrence is just being appended, see step below
+      '''
+      Make sure to return only valid kmers, not shorter sequences due to automatic Python indexing behavior.
+      In Python, for string 'HELLO', the index '[4:9]' yields 'O' and not an error. So if below test wasn't 
+      implemented, shorter sequences would be returned as well, not just sequences of length k.
+      If the algorithm now finds a sequence with length < k, we break out of the the while loop, since such a 
+      sequence has to be at the end - there can be no more sequences of length k.
+      '''
+      if len(kmer) == k: 
+        index[kmer] = [i]
+        i+=1
+      else:
+        break
+    else:
+      index[kmer].append(i)
+      i+=1
+  return index
